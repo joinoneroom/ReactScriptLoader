@@ -120,10 +120,20 @@ var ReactScriptLoaderMixin = {
 		if (typeof this.getScriptURL !== 'function') {
 			throw new Error("ScriptLoaderMixin: Component class must implement getScriptURL().")
 		}
-		ReactScriptLoader.componentDidMount(this.__getScriptLoaderID(), this, this.getScriptURL());
+        if (this.getScriptURL() instanceof Array) {
+            for (var url in this.getScriptURL()) {
+		        ReactScriptLoader.componentDidMount(this.__getScriptLoaderID(), this, url);
+            }
+        } else {
+		    ReactScriptLoader.componentDidMount(this.__getScriptLoaderID(), this, this.getScriptURL());
+        }
 	},
 	componentWillUnmount: function() {
-		ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this.getScriptURL());
+        for (var url in this.getScriptURL()) {
+	        ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this, url);
+        } else {
+		    ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this.getScriptURL());
+        }
 	},
 	__getScriptLoaderID: function() {
 		if (typeof this.__reactScriptLoaderID === 'undefined') {
