@@ -129,8 +129,10 @@ var ReactScriptLoaderMixin = {
         }
 	},
 	componentWillUnmount: function() {
-        for (var url in this.getScriptURL()) {
-	        ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this, url);
+        if (this.getScriptURL() instanceof Array) {
+	        for (var url in this.getScriptURL()) {
+		        ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this, url);
+		    }
         } else {
 		    ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this.getScriptURL());
         }
