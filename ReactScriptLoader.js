@@ -25,29 +25,29 @@ var ReactScriptLoader = {
 			throw new Error('ScriptLoader: Component class must implement onScriptError()');
 		}
 		if (loadedScripts[scriptURL]) {
-			component.onScriptLoaded();
-			return;
+	    	console.log('ReactScriptLoaderMixin: reload loaded script');
+	    	delete loadedScripts[scriptURL];
 		}
 		if (erroredScripts[scriptURL]) {
-			component.onScriptError();
-			return;
+	    	console.log('ReactScriptLoaderMixin: reload errored script');
+	    	delete erroredScripts[scriptURL];
 		}
 
 		// If the script is loading, add the component to the script's observers
 		// and return. Otherwise, initialize the script's observers with the component
 		// and start loading the script.
 		if (scriptObservers[scriptURL]) {
-	    	console.log('ReactScriptLoaderMixin: add component to scriptObservers');
-			scriptObservers[scriptURL][key] = component;
-			return;
+	    	console.log('ReactScriptLoaderMixin: reload script scriptObservers');
+	    	delete erroredScripts[scriptURL];
 		}
 
 		var observers = {};
 		observers[key] = component;
 		scriptObservers[scriptURL] = observers;
 
-    	console.log('ReactScriptLoaderMixin: creating script tag');
+    	console.log('ReactScriptLoaderMixin: creating script tag for key', key);
 		var script = document.createElement('script');
+		script.id = 'script' + key;
 
 		if (typeof component.onScriptTagCreated === 'function') {
 			component.onScriptTagCreated(script);
@@ -55,6 +55,14 @@ var ReactScriptLoader = {
 
 		script.src = scriptURL;
 		script.async = 1;
+
+		// remove if exists
+		var previousKey = 'script' + (key - 1);
+		var previousScript = document.getElementById(previousKey);
+		if (previousScript && document.body.contains(previousScript) && previousScript.src == script.src) {
+			console.log('ReactScriptLoaderMixin: remove previous script');
+			document.body.removeChild(previousScript);
+		}
 
 		var callObserverFuncAndRemoveObserver = function(func) {
 			var observers = scriptObservers[scriptURL];
@@ -65,7 +73,6 @@ var ReactScriptLoader = {
 					delete scriptObservers[scriptURL][key];
 				}
 			}
-			//delete scriptObservers[scriptURL];
 		}
 		script.onload = function() {
 			loadedScripts[scriptURL] = true;
@@ -120,10 +127,10 @@ var ReactScriptLoader = {
 
 var ReactScriptLoaderMixin = {
 	componentDidMount: function() {
+    	console.log('ReactScriptLoaderMixin: componentDidMount');
 		if (typeof this.getScriptURL !== 'function') {
 			throw new Error("ScriptLoaderMixin: Component class must implement getScriptURL().")
 		}
-    	console.log('ReactScriptLoaderMixin: componentDidMount');
         if (this.getScriptURL() instanceof Array) {
     		console.log('ReactScriptLoaderMixin: load array of scripts', this.getScriptURL());
             for (var i in this.getScriptURL()) {
@@ -145,7 +152,7 @@ var ReactScriptLoaderMixin = {
 	},
 	__getScriptLoaderID: function() {
 		if (typeof this.__reactScriptLoaderID === 'undefined') {
-			this.__reactScriptLoaderID = 'id' + idCount++;
+			this.__reactScriptLoaderID = idCount++;
 		}
 
 		return this.__reactScriptLoaderID;
