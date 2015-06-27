@@ -37,6 +37,7 @@ var ReactScriptLoader = {
 		// and return. Otherwise, initialize the script's observers with the component
 		// and start loading the script.
 		if (scriptObservers[scriptURL]) {
+	    	console.log('ReactScriptLoaderMixin: add component to scriptObservers');
 			scriptObservers[scriptURL][key] = component;
 			return;
 		}
@@ -45,6 +46,7 @@ var ReactScriptLoader = {
 		observers[key] = component;
 		scriptObservers[scriptURL] = observers;
 
+    	console.log('ReactScriptLoaderMixin: creating script tag');
 		var script = document.createElement('script');
 
 		if (typeof component.onScriptTagCreated === 'function') {
@@ -83,15 +85,16 @@ var ReactScriptLoader = {
 			});
 		};
 		// (old) MSIE browsers may call 'onreadystatechange' instead of 'onload'
-    		script.onreadystatechange = function() {
-      			if (this.readyState == 'loaded') {
-        			// wait for other events, then call onload if default onload hadn't been called
-        			window.setTimeout(function() {
-          				if (loadedScripts[scriptURL] !== true) script.onload();
-        			}, 0);
-      			}
-    		};
+		script.onreadystatechange = function() {
+  			if (this.readyState == 'loaded') {
+    			// wait for other events, then call onload if default onload hadn't been called
+    			window.setTimeout(function() {
+      				if (loadedScripts[scriptURL] !== true) script.onload();
+    			}, 0);
+  			}
+		};
 		
+		console.log('append script', script);
 		document.body.appendChild(script);
 	},
 	componentWillUnmount: function(key, scriptURL) {
@@ -120,18 +123,21 @@ var ReactScriptLoaderMixin = {
 		if (typeof this.getScriptURL !== 'function') {
 			throw new Error("ScriptLoaderMixin: Component class must implement getScriptURL().")
 		}
+    	console.log('ReactScriptLoaderMixin: componentDidMount');
         if (this.getScriptURL() instanceof Array) {
-            for (var url in this.getScriptURL()) {
-		        ReactScriptLoader.componentDidMount(this.__getScriptLoaderID(), this, url);
+    		console.log('ReactScriptLoaderMixin: load array of scripts', this.getScriptURL());
+            for (var i in this.getScriptURL()) {
+		        ReactScriptLoader.componentDidMount(this.__getScriptLoaderID(), this, this.getScriptURL()[i]);
             }
         } else {
 		    ReactScriptLoader.componentDidMount(this.__getScriptLoaderID(), this, this.getScriptURL());
         }
 	},
 	componentWillUnmount: function() {
-        if (this.getScriptURL() instanceof Array) {
-	        for (var url in this.getScriptURL()) {
-		        ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this, url);
+    	console.log('ReactScriptLoaderMixin: componentWillUnmount');
+		if (this.getScriptURL() instanceof Array) {
+	        for (var i in this.getScriptURL()) {
+		        ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this, this.getScriptURL()[i]);
 		    }
         } else {
 		    ReactScriptLoader.componentWillUnmount(this.__getScriptLoaderID(), this.getScriptURL());
