@@ -47,7 +47,6 @@ var ReactScriptLoader = {
 
     	console.log('ReactScriptLoaderMixin: creating script tag for key', key);
 		var script = document.createElement('script');
-		script.id = 'script' + key;
 
 		if (typeof component.onScriptTagCreated === 'function') {
 			component.onScriptTagCreated(script);
@@ -57,11 +56,12 @@ var ReactScriptLoader = {
 		script.async = 1;
 
 		// remove if exists
-		var previousKey = 'script' + (key - 1);
-		var previousScript = document.getElementById(previousKey);
-		if (previousScript && document.body.contains(previousScript) && previousScript.src == script.src) {
-			console.log('ReactScriptLoaderMixin: remove previous script');
-			document.body.removeChild(previousScript);
+		var scripts = document.getElementsByTagName("script");
+		for (var i=0;i<scripts.length;i++) {
+		    if (scripts[i].src && scripts[i].src === scriptURL ) {
+		    	console.log('ReactScriptLoaderMixin: remove previous script');
+		    	document.body.removeChild(scripts[i]);
+		    }
 		}
 
 		var callObserverFuncAndRemoveObserver = function(func) {
@@ -152,7 +152,7 @@ var ReactScriptLoaderMixin = {
 	},
 	__getScriptLoaderID: function() {
 		if (typeof this.__reactScriptLoaderID === 'undefined') {
-			this.__reactScriptLoaderID = idCount++;
+			this.__reactScriptLoaderID = 'scriptid' + idCount++;
 		}
 
 		return this.__reactScriptLoaderID;
