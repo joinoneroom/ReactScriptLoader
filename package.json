@@ -1,6 +1,6 @@
 {
   "name": "react-script-loader",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "ReactScriptLoader.js",
   "engines": {
     "node": "0.10.x"
